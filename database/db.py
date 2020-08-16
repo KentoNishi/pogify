@@ -1,28 +1,14 @@
-# from flask import Flask, request
-# from flask_cors import CORS
-# from flask_socketio import SocketIO
-# from firebase import Firebase
-
-
-# app = Flask(__name__)
-# CORS(app)
-# 
-# socketio = SocketIO(app, logger=True, engineio_logger=True)
-# 
-# @app.route("/")
-# def index():
-#     return "Pogify websocket database interface"
-# 
-# 
-# @app.route("/create", methods=["POST"])
-# def create_user
-
 import socketio
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from pydantic import BaseModel
+try:
+    from . import core
+    from .schemas import SpotifyData, SessionCreate
+except:
+    import core
+    from schemas import SpotifyData, SessionCreate
 
 fapp = FastAPI()
 
@@ -45,12 +31,6 @@ app = socketio.ASGIApp(
     socketio_path="/socket.io/"
 )
 
-class SessionCreate(BaseModel):
-    name: str
-
-class SpotifyData(BaseModel):
-    room: str
-    data: str
 
 @fapp.get("/", response_class=HTMLResponse)
 async def index():
@@ -65,11 +45,30 @@ async def create_session(session: SessionCreate):
 
 @fapp.post("/update")
 async def update_session(data: SpotifyData):
-    await sio.emit("onchange", {"data": data.data}, room=data.room)
+    await sio.emit("onchange", {"data": data.dict()}, room=data.room)
+    await core.set_data(data.room, data)
+
+
+@fapp.post("/delete")
+async def delete(session: SessionCreate):
+    await core.delete_data(session.name)
 
 
 @sio.on("join")
 async def begin_chat(sid, data):
-    sio.enter_room(sid, data["stream"])
-    await sio.emit("onchange", {"data": f"{sid} has joined"}, room=data["stream"])
+    """
+    Joins user into chat room and sends them data
 
+    sends: {
+        data: SpotifyData
+        success: bool
+    }
+    """
+    sio.enter_room(sid, data["stream"])
+    try:
+        data = await core.get_data(data["stream"])
+        data = data.dict()
+        data["success"] = True
+    except:
+        data = {"success": False}
+    await sio.emit("onchange", {"data": data}, room=sid)
