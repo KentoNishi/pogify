@@ -3,7 +3,6 @@ from pydantic import BaseModel
 class SessionCreate(BaseModel):
     name: str
 
-
 class SpotifyData(BaseModel):
     """The data sent to the server from the streamer"""
     room: str

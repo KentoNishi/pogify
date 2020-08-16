@@ -21,4 +21,3 @@ async def search(q: str):
     if len(results) == 0:
         return ""
     return {"video": results[0]["url_suffix"][9:]}
-
