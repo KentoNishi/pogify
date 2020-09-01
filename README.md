@@ -1,5 +1,8 @@
 # Pogify Client & Chrome Extension
 
+### ℹ Pogify's source code has been moved [here](https://github.com/Pogify). ℹ
+#### ⚠ THIS REPOSITORY IS NO LONGER MAINTAINED. ⚠
+
 Listen to music with your stream chat without getting DMCA-striked.
 
 [View code on GitHub](https://github.com/KentoNishi/pogify)
